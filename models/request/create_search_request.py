@@ -1,0 +1,2 @@
+class CreateSearchRequest:
+    pass
