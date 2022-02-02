@@ -1,4 +1,3 @@
-from helpers.IgdbHelper import IgdbHelper
 from models import search
 import os
 import json
@@ -6,10 +5,12 @@ import json
 
 class SearchManager:
 
-    def __init__(self, search_repository, result_repository, data_manager):
+    def __init__(self, search_repository, result_repository, data_manager, filter_manager, igdb_manager):
         self._search_repository = search_repository
         self._result_repository = result_repository
         self._data_manager = data_manager
+        self._filter_manager = filter_manager
+        self._igdb_manager = igdb_manager
 
     def create_search(self, search_content):
         new_search = self.map_search_object(search_content)
@@ -21,21 +22,15 @@ class SearchManager:
             self._search_repository.update_search_date(new_search.id, new_search.created_at)
 
         result = self.map_result_object(
-            IgdbHelper.create_api_request(
-                IgdbHelper.create_wrapper(os.getenv("CLIENT_ID"), os.getenv("APP_ACCESS_TOKEN")),
-                self.get_search_type(new_search),
-                self.map_search_filter(new_search),
-                json))
+            self._igdb_manager.create_api_request(
+                self._igdb_manager.create_wrapper(os.getenv("CLIENT_ID"), os.getenv("APP_ACCESS_TOKEN")),
+                "games",
+                self._filter_manager.create_filter(new_search)))
+
         result = self._data_manager.handle_result(result)
         self._result_repository.insert(result)
 
         return result
-
-    def get_search_type(self, search_object):
-        return ""
-
-    def map_search_filter(self, search):
-        return ""
 
     def map_result_object(self, result_content):
         return ""
